@@ -1,2 +1,5 @@
-# PSAdbAlias
-PowerShell module that provides aliases for adb.
+# Adb Helper
+
+PowerShell module that provides several helping functions based on Android Debug Bridge (ADB).
+
+

@@ -1,6 +1,3 @@
-. $PSScriptRoot\AppHelper.ps1
-. $PSScriptRoot\ApkHelper.ps1
-
 # Adb Devices
 function ad { & adb devices }
 
@@ -18,14 +15,23 @@ function aidr { & adb install -d -r @args }
 function as { & adb shell @args }
 function asas {
     param (
-        [string]$PackageName,
-        [string]$LaunchActivity
+        [Parameter(Mandatory = $true)][string]$PackageName,
+        [Parameter(Mandatory = $true)][string]$LaunchActivity
     )
+    Write-Host "Start app '$PackageName' with activity '$LaunchActivity'"
     & adb shell am start -n $PackageName/$LaunchActivity
 }
+function asp {
+    & adb shell ps @args
+}
+function asps {
+    & adb shell ps | Select-String @args
+}
+function asast {
+    param (
+        [string]$PackageName
+    )
 
-
-# App Helper
-New-Alias -Name gappi -Value Get-AppInfo -Force
-New-Alias -Name aappi -Value Add-AppInfo -Force
-New-Alias -Name gapki -Value Get-ApkInfo -Force
+    Write-Host "Stop app '$PackageName"
+    & adb shell am force-stop $PackageName
+}

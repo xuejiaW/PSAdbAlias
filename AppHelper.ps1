@@ -1,11 +1,13 @@
+
+
 $storagePath = Join-Path -Path $env:APPDATA -ChildPath "/PSModules/AdbHelper"
 $storageFile = Join-Path -Path $storagePath -ChildPath "AppInfo.json"
 
 function Add-AppInfo {
     param (
-        [string]$AppName,
-        [string]$PackageName,
-        [string]$LaunchActivity
+        [Parameter(Mandatory = $true)] [string]$AppName,
+        [Parameter(Mandatory = $true)] [string]$PackageName,
+        [Parameter(Mandatory = $true)] [string]$LaunchActivity
     )
     
     $storagePath = Split-Path -Parent $storageFile
@@ -34,12 +36,13 @@ function Add-AppInfo {
         $existedAppInfos += $appInfo
     }
 
-    $existedAppInfos | ConvertTo-Json -Depth 5 | Set-Content $storageFile -Force
+    $existedAppInfos | ConvertTo-Json | Set-Content $storageFile -Force
 }
 
 function Get-AppInfo {
     param (
-        [string]$AppName
+        [string]$AppName,
+        [Alias("l")] [switch]$List
     )
 
     if (-not (Test-Path -Path $storageFile)) {
@@ -47,15 +50,77 @@ function Get-AppInfo {
         return
     }
 
-    $appInfos = Get-Content -Path $storageFile -ErrorAction Stop | ConvertFrom-Json
+    $existedAppInfos = Get-Content -Path $storageFile -ErrorAction Stop | ConvertFrom-Json
 
-    $selectedAppInfo = $appInfos | Where-Object { $_.Name -eq $AppName }
-
-    if ($selectedAppInfo) {
-        return $selectedAppInfo
+    if ($List) {
+        $existedAppInfos | Format-Table -AutoSize
     }
     else {
-        Write-Warning "Can not find the app info for '$AppName'"
-        return $null
+
+        $selectedAppInfo = $existedAppInfos | Where-Object { $_.Name -eq $AppName }
+
+        if ($selectedAppInfo) {
+            return $selectedAppInfo
+        }
+        else {
+            Write-Warning "Can not find the app info for '$AppName'"
+            return $null
+        }
     }
 }
+
+function Remove-AppInfo {
+    param (
+        [string]$AppName,
+        [Alias("a")] [switch]$All
+
+    )
+
+    if ($All) {
+        Write-Host "Delete app info storage file '$storageFile'"
+        Remove-Item -Path $storageFile -Force
+    }
+    else {
+        $existedAppInfos = Get-Content -Path $storageFile -ErrorAction Stop | ConvertFrom-Json
+        $existedAppInfos = $existedAppInfos | Where-Object { $_.Name -ne $AppName }
+        $existedAppInfos | ConvertTo-Json | Set-Content $storageFile -Force
+    }
+
+}
+
+function Start-App {
+    param (
+        [Parameter(Mandatory = $true)][string]$AppName
+    )
+
+    $appInfo = Get-AppInfo -AppName $AppName
+    asas -PackageName $appInfo.PackageName -LaunchActivity $appInfo.LaunchActivity
+    
+}
+
+function Stop-App {
+    param (
+        [Parameter(Mandatory = $true)][string]$AppName
+    )
+
+    $appInfo = Get-AppInfo -AppName $AppName
+    asast -PackageName $appInfo.PackageName
+}
+
+function Get-AppPID {
+    param (
+        [Parameter(Mandatory = $true)][string]$AppName
+    )
+
+    $appInfo = Get-AppInfo -AppName $AppName
+    asps  $appInfo.PackageName
+}
+
+New-Alias -Name gappi -Value Get-AppInfo -Force
+New-Alias -Name aappi -Value Add-AppInfo -Force
+New-Alias -Name rappi -Value Remove-AppInfo -Force
+
+New-Alias -Name sapp -Value Start-App -Force
+New-Alias -Name stapp -Value Stop-App -Force
+
+New-Alias -Name gapppid -Value Get-AppPID -Force

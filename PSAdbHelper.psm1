@@ -1,4 +1,4 @@
-. $PSScriptRoot\Aliases.ps1
+. $PSScriptRoot\AdbAliases.ps1
 . $PSScriptRoot\AppHelper.ps1
 . $PSScriptRoot\ApkHelper.ps1
 
@@ -11,15 +11,26 @@ $FunctionToExport = @(
     'air',
     'aidr',
     'asas',
+    'asast',
+    'asp',
+    'asps',
     'Add-AppInfo',
     'Get-AppInfo',
-    'Get-ApkInfo'
+    'Remove-AppInfo',
+    'Start-App',
+    'Stop-App',
+    'Get-ApkInfo',
+    "Get-AppPID"
 )
 
 $AliasToExport = @(
     'gappi',
     'aappi',
-    'gapki'
+    'rappi',
+    'gapki',
+    'sapp',
+    'stapp',
+    'gapppid'
 )
 
 foreach ($Function in $FunctionToExport) {

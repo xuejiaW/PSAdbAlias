@@ -1,7 +1,6 @@
 function Get-ApkInfo {
     param (
-        [Parameter(Mandatory = $true)]
-        [string]$ApkPath
+        [Parameter(Mandatory = $true)] [string]$ApkPath
     )
    
     if (-not (Test-Path $ApkPath)) {
@@ -37,3 +36,5 @@ function Get-ApkInfo {
 
     return $result
 }
+
+New-Alias -Name gapki -Value Get-ApkInfo -Force
