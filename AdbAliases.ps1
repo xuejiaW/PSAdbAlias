@@ -2,6 +2,7 @@
 function ad { & adb devices }
 
 # Adb Log
+function al { & adb logcat @args }
 function alc { & adb logcat -c }
 function als { & adb logcat | Select-String @args }
 

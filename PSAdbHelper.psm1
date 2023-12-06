@@ -4,6 +4,7 @@
 
 $FunctionToExport = @(
     'ad',
+    'al',
     'alc',
     'als',
     'ai',
