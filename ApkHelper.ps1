@@ -1,4 +1,4 @@
-function GetApkInfo {
+function Get-ApkInfo {
     param (
         [Parameter(Mandatory = $true)]
         [string]$ApkPath

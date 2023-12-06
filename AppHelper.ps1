@@ -1,35 +1,43 @@
-$storagePath = Join-Path -Path $env:APPDATA -ChildPath "PowerShellAppInfo"
+$storagePath = Join-Path -Path $env:APPDATA -ChildPath "/PSModules/AdbHelper"
 $storageFile = Join-Path -Path $storagePath -ChildPath "AppInfo.json"
 
-function AddAppInfo {
+function Add-AppInfo {
     param (
         [string]$AppName,
         [string]$PackageName,
         [string]$LaunchActivity
     )
     
-    $existedAppInfos = if (Test-Path $storageFile) {
-        Get-Content $storageFile | ConvertFrom-Json 
+    $storagePath = Split-Path -Parent $storageFile
+    if (-not (Test-Path $storagePath)) {
+        New-Item -ItemType Directory -Path $storagePath | Out-Null
+    }
+
+    [array]$existedAppInfos = if (Test-Path $storageFile) {
+        Get-Content $storageFile -Raw | ConvertFrom-Json
     }
     else {
         @() 
     }
 
-    if (-not (Test-Path $storagePath)) {
-        New-Item -ItemType Directory -Path $storagePath | Out-Null
+    $existingAppInfo = $existedAppInfos | Where-Object { $_.Name -eq $AppName }
+    if ($null -ne $existingAppInfo) {
+        $existingAppInfo.PackageName = $PackageName
+        $existingAppInfo.LaunchActivity = $LaunchActivity
+    }
+    else {
+        $appInfo = [PSCustomObject]@{
+            Name           = $AppName
+            PackageName    = $PackageName
+            LaunchActivity = $LaunchActivity
+        }
+        $existedAppInfos += $appInfo
     }
 
-    $appInfo = [PSCustomObject]@{
-        Name           = $AppName
-        PackageName    = $PackageName
-        LaunchActivity = $LaunchActivity
-    }    
-   
-    $existedAppInfos += $appInfo
-    $existedAppInfos | ConvertTo-Json | Out-File $storageFile -Force
+    $existedAppInfos | ConvertTo-Json -Depth 5 | Set-Content $storageFile -Force
 }
 
-function GetAppInfo {
+function Get-AppInfo {
     param (
         [string]$AppName
     )

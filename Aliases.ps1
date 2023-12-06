@@ -1,3 +1,6 @@
+. $PSScriptRoot\AppHelper.ps1
+. $PSScriptRoot\ApkHelper.ps1
+
 # Adb Devices
 function ad { & adb devices }
 
@@ -20,3 +23,9 @@ function asas {
     )
     & adb shell am start -n $PackageName/$LaunchActivity
 }
+
+
+# App Helper
+New-Alias -Name gappi -Value Get-AppInfo -Force
+New-Alias -Name aappi -Value Add-AppInfo -Force
+New-Alias -Name gapki -Value Get-ApkInfo -Force
