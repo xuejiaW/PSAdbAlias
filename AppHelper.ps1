@@ -1,7 +1,4 @@
-
-
-$storagePath = Join-Path -Path $env:APPDATA -ChildPath "/PSModules/AdbHelper"
-$storageFile = Join-Path -Path $storagePath -ChildPath "AppInfo.json"
+$appInfoFile = Join-Path -Path $moduleStoragePath -ChildPath "AppInfo.json"
 
 function Add-AppInfo {
     param (
@@ -10,33 +7,28 @@ function Add-AppInfo {
         [Parameter(Mandatory = $true)] [string]$LaunchActivity
     )
     
-    $storagePath = Split-Path -Parent $storageFile
-    if (-not (Test-Path $storagePath)) {
-        New-Item -ItemType Directory -Path $storagePath | Out-Null
-    }
-
-    [array]$existedAppInfos = if (Test-Path $storageFile) {
-        Get-Content $storageFile -Raw | ConvertFrom-Json
+    [array]$appInfoList = if (Test-Path $appInfoFile) {
+        Get-Content $appInfoFile -Raw | ConvertFrom-Json
     }
     else {
         @() 
     }
 
-    $existingAppInfo = $existedAppInfos | Where-Object { $_.Name -eq $AppName }
-    if ($null -ne $existingAppInfo) {
-        $existingAppInfo.PackageName = $PackageName
-        $existingAppInfo.LaunchActivity = $LaunchActivity
+    $existAppInfo = $appInfoList | Where-Object { $_.Name -eq $AppName }
+    if ($null -ne $existAppInfo) {
+        $existAppInfo.PackageName = $PackageName
+        $existAppInfo.LaunchActivity = $LaunchActivity
     }
     else {
-        $appInfo = [PSCustomObject]@{
+        $newAppInfo = [PSCustomObject]@{
             Name           = $AppName
             PackageName    = $PackageName
             LaunchActivity = $LaunchActivity
         }
-        $existedAppInfos += $appInfo
+        $appInfoList += $newAppInfo
     }
 
-    $existedAppInfos | ConvertTo-Json | Set-Content $storageFile -Force
+    $appInfoList | ConvertTo-Json | Set-Content $appInfoFile -Force
 }
 
 function Get-AppInfo {
@@ -45,22 +37,22 @@ function Get-AppInfo {
         [Alias("l")] [switch]$List
     )
 
-    if (-not (Test-Path -Path $storageFile)) {
-        Write-Error "Can not find the storage file '$storageFile'"
+    if (-not (Test-Path -Path $appInfoFile)) {
+        Write-Error "Can not find the app info saving file '$appInfoFile'"
         return
     }
 
-    $existedAppInfos = Get-Content -Path $storageFile -ErrorAction Stop | ConvertFrom-Json
+    $appInfoList = Get-Content -Path $appInfoFile -ErrorAction Stop | ConvertFrom-Json
 
     if ($List) {
-        $existedAppInfos | Format-Table -AutoSize
+        $appInfoList | Format-Table -AutoSize
     }
     else {
 
-        $selectedAppInfo = $existedAppInfos | Where-Object { $_.Name -eq $AppName }
+        $existAppInfo = $appInfoList | Where-Object { $_.Name -eq $AppName }
 
-        if ($selectedAppInfo) {
-            return $selectedAppInfo
+        if ($existAppInfo) {
+            return $existAppInfo
         }
         else {
             Write-Warning "Can not find the app info for '$AppName'"
@@ -77,13 +69,13 @@ function Remove-AppInfo {
     )
 
     if ($All) {
-        Write-Host "Delete app info storage file '$storageFile'"
-        Remove-Item -Path $storageFile -Force
+        Write-Host "Delete app info saving file '$appInfoFile'"
+        Remove-Item -Path $appInfoFile -Force
     }
     else {
-        $existedAppInfos = Get-Content -Path $storageFile -ErrorAction Stop | ConvertFrom-Json
-        $existedAppInfos = $existedAppInfos | Where-Object { $_.Name -ne $AppName }
-        $existedAppInfos | ConvertTo-Json | Set-Content $storageFile -Force
+        [array]$appInfoList = Get-Content -Path $appInfoFile -ErrorAction Stop | ConvertFrom-Json
+        $appInfoList = $appInfoList | Where-Object { $_.Name -ne $AppName }
+        $appInfoList | ConvertTo-Json | Set-Content $appInfoFile -Force
     }
 
 }
